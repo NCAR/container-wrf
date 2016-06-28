@@ -1,0 +1,39 @@
+#########################################
+#
+# Docker Compose file for NCAR docker-wrf prototype
+# to be used as a template and beta access
+# exby@ucar.edu
+#
+#
+# instantiate WPS geog data volume
+#
+wpsgeog:
+   image: bigwxwrf/ncar-wpsgeog
+#
+#
+# instantiate Hurricane sandy case data
+#
+wrfinput:
+   image: bigwxwrf/ncar-wrfinputsandy
+# OR
+#   image: bigwxwrf/ncar-wrfinputkatrina
+#
+#
+# instantiate NCAR wrf executable image and run
+# a label for the job
+wrfsandy:
+   image: bigwxwrf/ncar-wrf
+   volumes_from:
+    - wpsgeog
+    - wrfinput
+   volumes:
+    - ~/wrfoutput:/wrfoutput
+   command: [/wrf/run-wrf, -np, "2"]
+#
+#
+# NCL post-proc 
+#
+#ncl:
+#   image: bigwxwrf/ncar-ncl
+#   volumes:
+#   - ~/wrfoutput:/wrfoutput

@@ -1,0 +1,283 @@
+#!/bin/bash
+#
+# Simplified script to run wrf test Sandy case in Docker world
+#
+# Examples in block below.
+# ./run-wrf -np 2 -skip wps -namelist /path/to/namelist -skip real
+
+#Initalize options
+num_procs=1
+skip_wps=false
+skip_real=false
+my_namelist=false
+
+#
+# variables need to match docker container volume names:
+WRF_BUILD="/wrf"
+INPUT_DIR="/wrfinput"
+OUTPUT_DIR="/wrfoutput"
+NML_DIR="/wrfinput"
+#
+
+# Read in command line options
+
+while (( $# > 1 ))
+do
+
+opt="$1"
+case $opt in
+
+   "-np")
+        num_procs="$2"
+        shift
+        ;;
+
+   "-skip")
+        skip_stuff="$2"
+	   if [[ $skip_stuff == "wps" ]]; then
+             skip_wps=true
+           fi
+           if [[ $skip_stuff == "real" ]]; then
+             skip_real=true
+           fi
+       shift
+       ;;
+
+   "-namelist")
+       my_namelist=true
+       NML_DIR="$2"
+       shift
+       ;;
+
+   *)
+        echo "Usage: Incorrect"
+        exit 15
+        ;;
+esac
+shift
+done
+
+echo "num_procs = " $num_procs
+echo "skip_wps  = " $skip_wps
+echo "skip_real = " $skip_real
+echo "my_namelist = " $my_namelist
+echo "namelist dir = " $NML_DIR
+# End sample argument list
+
+# Set input data contain location
+
+#	To run the test, bring in the correct namelist.wps, and link the Grib data,
+#	select the right Vtable.
+
+if [ $skip_wps = "false" ]; then #Don't skip wps
+echo "doing wps"
+
+cd $WRF_BUILD/WPS
+
+if [ ! -e namelist.wps.ORIG ]; then
+	cp -f namelist.wps namelist.wps.ORIG
+fi
+
+# Get namelist and correct Vtable based on data
+# The Vtable is dependent on the data that is used
+# Will need to pull this in dynamically somehow, tie to data/namelist
+
+cp -f $INPUT_DIR/namelist.wps .
+cp -f $INPUT_DIR/Vtable.GFS Vtable
+
+# Link input data
+./link_grib.csh $INPUT_DIR/*_*
+
+##################################
+#     Run the geogrid program    #
+##################################
+
+# Remove old files
+  if [ -e geo_em.d01.nc ]; then
+	rm -rf geo_em.d01.nc
+  fi
+
+# Command for geogrid
+  ./geogrid.exe >& print.geogrid.txt
+
+# KRF: How much "checking" do we want?
+# Check success
+  ls -ls geo_em.d01.nc
+  OK_geogrid=$?
+
+  if [ $OK_geogrid -eq 0 ]; then
+	echo OK geogrid ran fine
+	echo Completed geogrid, Starting ungrib at `date`
+	echo
+	tail print.geogrid.txt
+	echo
+  else
+	echo
+	echo TROUBLES
+	echo geogrid did not complete
+	echo
+	cat geogrid.log
+	echo
+	exit 444
+  fi
+
+##################################
+#    Run the ungrib program      #
+##################################
+
+# checking to remove old files
+  file_date=`cat namelist.wps | grep -i start_date | cut -d"'" -f2 | cut -d":" -f1`
+  if [ -e PFILE:${file_date} ]; then
+	rm -rf PFILE*
+  fi
+  if [ -e FILE:${file_date} ]; then
+	rm -rf FILE*
+  fi
+
+# Command for ungrib
+  ./ungrib.exe >& print.ungrib.txt
+
+  ls -ls FILE:*
+  OK_ungrib=$?
+
+  if [ $OK_ungrib -eq 0 ]; then
+	echo OK ungrib ran fine
+	echo Completed ungrib, Starting metgrid at `date`
+	echo
+	tail print.ungrib.txt
+	echo
+  else
+	echo
+	echo TROUBLES
+	echo ungrib did not complete
+	echo
+	cat ungrib.log
+	echo
+	exit 555
+  fi
+
+##################################
+#     Run the metgrid program    #
+##################################
+
+# Remove old files
+  if [ -e met_em.d01.${file_date}:00:00.nc ]; then
+	rm -rf met_em.d01.*
+  fi
+
+# Command for metgrid
+  ./metgrid.exe >& print.metgrid.txt
+
+# Check sucess
+  ls -ls met_em.d01.*
+  OK_metgrid=$?
+
+  if [ $OK_metgrid -eq 0 ]; then
+	echo OK metgrid ran fine
+	echo Completed metgrid, Starting program real at `date`
+	echo
+	tail print.metgrid.txt
+	echo
+  else
+	echo
+	echo TROUBLES
+	echo metgrid did not complete
+	echo
+	cat metgrid.log
+	echo
+	exit 666
+  fi
+
+fi # end if skip_wps = false
+
+##################################
+#    Move to WRF                 #
+##################################
+
+# Go to test directory where tables, data, etc. exist
+# Perform wrf run here.
+
+cd $WRF_BUILD/WRFV3/run
+
+# Get namelist and modify colons
+  if [ ! -e namelist.input.ORIG ]; then
+	cp -f namelist.input namelist.input.ORIG
+  fi
+
+ # cp $INPUT_DIR/namelist.input .
+  cp $NML_DIR/namelist.input .
+  sed -e '/nocolons/d' namelist.input > nml
+  mv nml namelist.input
+
+##################################
+#     Run the real program       #
+##################################
+
+if [ $skip_real = "false" ]; then # Don't skip real if true
+echo "doing real"
+
+# Link data from WPS
+  ln -sf $WRF_BUILD/WPS/met_em.d0* .
+
+# Remove old files
+  if [ -e wrfinput_d01 ]; then
+	rm -rf wrfi* wrfb*
+  fi
+
+# Command for real
+    ./real.exe
+
+# Check success
+  ls -ls wrfinput_d01
+  OK_wrfinput=$?
+
+  ls -ls wrfbdy_d01
+  OK_wrfbdy=$?
+
+  if [ $OK_wrfinput -eq 0 ] && [ $OK_wrfbdy -eq 0 ]; then
+	echo OK real ran fine
+        echo
+	tail rsl.error.0000
+        echo
+
+  else
+	echo
+	echo TROUBLES
+	echo the real program did not complete
+	echo
+	cat rsl.error.0000
+	echo
+	exit 777
+  fi
+
+fi # end skip_real = false
+
+##################################
+#   Run the WRF forecast model.  #
+##################################
+
+# Command for openmpi wrf in Docker world
+mpirun --allow-run-as-root -np $num_procs ./wrf.exe
+
+# Check success
+  ls -ls /$OUTPUT_DIR/wrfo*
+  OK_wrfout=$?
+
+  if [ $OK_wrfout -eq 0 ]; then
+	echo OK wrf ran fine
+	echo Completed WRF model with $FCST_LENGTH_HOURS hour simulation at `date`
+	echo
+	tail rsl.error.0000
+	echo
+  else
+	echo
+	echo TROUBLES
+	echo the WRF model did not complete
+	echo
+	cat rsl.error.0000
+	echo
+	exit 888
+  fi
+
+echo
+

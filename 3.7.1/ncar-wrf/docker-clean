@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Script to clean up WRF and WPS directories to remove
+# all source and built files, leaving only executables 
+# and required libraries, data files, etc.
+
+WRF_BUILD="/wrf"
+
+# Start with WRF
+cd $WRF_BUILD/WRFV3
+
+rm -f README* Makefile clean compile configure configure.wrf
+
+rm -rf Registry arch dyn_em dyn_exp dyn_nmm external frame \
+       hydro inc phys share test tools
+
+cd $WRF_BUILD/WRFV3/main
+rm -f *.F *.f90 *.o *.mod *.a *.c Makefile depend.common 
+
+echo
+cd $WRF_BUILD/WRFV3
+echo "Contents of WRFV3: "
+echo 
+ls -l $WRF_BUILD/WRFV3/*/*
+echo
+
+# Now clean WPS
+cd $WRF_BUILD/WPS
+
+rm -f README clean compile configure configure.wps 
+rm -f namelist.wps.global namelist.wps.nmm namelist.wps.all_options \
+      namelist.wps.fire 
+rm -rf arch util 
+
+cd $WRF_BUILD/WPS/geogrid
+rm -f Makefile
+rm -rf util
+
+cd $WRF_BUILD/WPS/geogrid/src
+rm -f *.F *.f90 *.o *.mod *.a *.c Makefile
+
+cd $WRF_BUILD/WPS/ungrib
+rm -f Makefile  README_LIBS
+
+cd $WRF_BUILD/WPS/ungrib/src
+rm -f *.F *.f90 *.o *.mod *.a *.c Makefile
+rm -rf ngl
+
+cd $WRF_BUILD/WPS/metgrid
+rm -f Makefile
+
+cd $WRF_BUILD/WPS/metgrid/src
+rm -f *.F *.f90 *.o *.mod *.a *.c Makefile
+
+cd $WRF_BUILD/WPS
+echo "Contents of WPS: "
+echo
+ls -l $WRF_BUILD/WPS/*/*
+echo
