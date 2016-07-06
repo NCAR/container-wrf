@@ -4,7 +4,7 @@
 # exby@ucar.edu
 #
 # Start with clean directories
-rm -f ~/wrfoutput/*nc  ~/wrfoutput/*pdf ~/wrfoutput/*gif
+rm -f ~/wrfoutput/*nc  ~/wrfoutput/*pdf ~/wrfoutput/*gif ~/wrfoutput/*png
 #
 # instantiate data sets and run WRF.  see corresponding docker-compose.yml file
 docker-compose up
