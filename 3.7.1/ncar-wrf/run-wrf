@@ -207,6 +207,7 @@ cd $WRF_BUILD/WRFV3/run
  # cp $INPUT_DIR/namelist.input .
   cp $NML_DIR/namelist.input .
   sed -e '/nocolons/d' namelist.input > nml
+  cp namelist.input namelist.nocolons
   mv nml namelist.input
 
 ##################################
@@ -257,6 +258,7 @@ fi # end skip_real = false
 ##################################
 
 # Command for openmpi wrf in Docker world
+cp namelist.nocolons namelist.input
 mpirun --allow-run-as-root -np $num_procs ./wrf.exe
 
 # Check success
