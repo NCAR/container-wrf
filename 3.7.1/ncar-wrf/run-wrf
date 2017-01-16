@@ -75,8 +75,7 @@ esac
 shift
 done
 
-echo "slots = " $slots
-echo "process_per_host = " $process_per_host
+echo "slots = " $process_per_host
 echo "iface = " $iface
 echo "num_procs = " $num_procs
 echo "skip_wps  = " $skip_wps
