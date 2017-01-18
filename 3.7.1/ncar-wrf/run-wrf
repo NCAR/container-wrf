@@ -3,13 +3,16 @@
 # Simplified script to run wrf test Sandy case in Docker world
 #
 # Examples in block below.
-# ./run-wrf -np 2 -skip wps -namelist /path/to/namelist -skip real
+# ./run-wrf -np 2 -slots 2 -face eth0 -skip wps -namelist /path/to/namelist -skip real
 
 #Initalize options
 num_procs=1
+process_per_host=1
+iface=eth0
 skip_wps=false
 skip_real=false
 my_namelist=false
+hosts=127.0.0.1
 
 #
 # variables need to match docker container volume names:
@@ -29,6 +32,21 @@ case $opt in
 
    "-np")
         num_procs="$2"
+        shift
+        ;;
+
+    "-slots")
+        process_per_host="$2"
+        shift
+        ;;
+   
+   "-hosts")
+        hosts="$2"
+        shift
+        ;;
+        
+   "-iface")
+        iface="$2"
         shift
         ;;
 
@@ -57,12 +75,17 @@ esac
 shift
 done
 
+echo "slots = " $process_per_host
+echo "iface = " $iface
 echo "num_procs = " $num_procs
 echo "skip_wps  = " $skip_wps
 echo "skip_real = " $skip_real
 echo "my_namelist = " $my_namelist
 echo "namelist dir = " $NML_DIR
 # End sample argument list
+
+# start ssh
+/usr/sbin/sshd
 
 # Set input data contain location
 
@@ -257,9 +280,15 @@ fi # end skip_real = false
 #   Run the WRF forecast model.  #
 ##################################
 
+# generate machine list
+IFS=,
+ary=($hosts)
+for key in "${!ary[@]}"; do echo "${ary[$key]} slots=${process_per_host}" >> /wrf/hosts; done
+
 # Command for openmpi wrf in Docker world
 cp namelist.nocolons namelist.input
 mpirun --allow-run-as-root -np $num_procs ./wrf.exe
+time mpirun --allow-run-as-root -hostfile /wrf/hosts -np $num_procs --mca btl self,tcp --mca btl_tcp_if_include $iface ./wrf.exe
 
 # Check success
   ls -ls /$OUTPUT_DIR/wrfo*
