@@ -40,7 +40,9 @@ docker-compose rm -f
 echo
 cd ./data-pulled-aws
 ls
-# the following two commands only function on MacOS
+#
+# the following commands only function on MacOS
 # comment out or adjust for other OS platforms
-open *.pdf *.png
+open *.pdf
+open *.png
 open -a Safari *.gif
