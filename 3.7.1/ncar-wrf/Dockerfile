@@ -5,7 +5,7 @@ MAINTAINER John Exby <exby@ucar.edu>
 ENV WRF_VERSION 3.7.1
 #
 RUN yum -y update
-RUN yum -y install file gcc gcc-gfortran gcc-c++ glibc.i686 libgcc.i686 libpng-devel jasper jasper-devel hostname m4 make perl tar tcsh time wget which zlib zlib-devel epel-release
+RUN yum -y install file gcc gcc-gfortran gcc-c++ glibc.i686 libgcc.i686 libpng-devel jasper jasper-devel hostname m4 make perl tar tcsh time wget which zlib zlib-devel openssh-clients openssh-server net-tools epel-release
 #
 # now get 3rd party EPEL builds of netcdf and openmpi dependencies
 RUN yum -y install netcdf-openmpi-devel.x86_64 netcdf-fortran-openmpi-devel.x86_64 netcdf-fortran-openmpi.x86_64 hdf5-openmpi.x86_64 openmpi.x86_64 openmpi-devel.x86_64
@@ -65,12 +65,12 @@ COPY run-wrf /wrf
 COPY docker-clean /wrf
 RUN chmod +x /wrf/run-wrf \
  && chmod +x /wrf/docker-clean
-
+#
 # set up ssh configuration
 COPY ssh_config /root/.ssh/config
 COPY slave /wrf/slave
-RUN yum install -y openssh-clients openssh-server net-tools \
-    && yum clean all \
+RUN yum clean all \
+    && /wrf/docker-clean \
     && mkdir -p /var/run/sshd \
     && ssh-keygen -A \
     && sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/g' /etc/ssh/sshd_config \
@@ -81,5 +81,5 @@ RUN yum install -y openssh-clients openssh-server net-tools \
     && chmod 700 /root/.ssh \
     && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
     && chmod +x /wrf/slave
-
+#
 CMD ["/wrf/run-wrf"]

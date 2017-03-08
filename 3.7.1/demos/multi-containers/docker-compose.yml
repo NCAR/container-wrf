@@ -1,0 +1,36 @@
+--- 
+wpsgeog: 
+  image: bigwxwrf/ncar-wpsgeog
+wrfinput: 
+  image: bigwxwrf/ncar-wrfinputsandy
+wrfsandy-leader: 
+  command: 
+    - /wrf/run-wrf
+    - "-np"
+    - "4"
+    - "-slots"
+    - "2"
+    - "-iface"
+    - eth0
+    - "-hosts"
+    - "wrfleader,wrfslave-1,wrfslave-2"
+  container_name: wrfleader
+  links: 
+    - wrfsandy-slave-1
+    - wrfsandy-slave-2
+  image: bigwxwrf/exby2-wrf
+  volumes: 
+    - "~/wrfoutput:/wrfoutput"
+  volumes_from: 
+    - wpsgeog
+    - wrfinput
+wrfsandy-slave-1: 
+  command: 
+    - /wrf/slave
+  container_name: wrfslave-1
+  image: bigwxwrf/exby2-wrf
+wrfsandy-slave-2: 
+  command: 
+    - /wrf/slave
+  container_name: wrfslave-2
+  image: bigwxwrf/exby2-wrf

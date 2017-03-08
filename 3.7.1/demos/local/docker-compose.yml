@@ -28,7 +28,7 @@ wrfsandy:
     - wrfinput
    volumes:
     - ~/wrfoutput:/wrfoutput
-   command: [/wrf/run-wrf, -np, "2", -slots, "2"]
+   command: [/wrf/run-wrf, -np, "2"]
 #
 #
 # NCL post-proc 

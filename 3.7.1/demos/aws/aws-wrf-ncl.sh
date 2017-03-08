@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 #
 # Primarily used and tested for EC2 instance
 # exby@ucar.edu
@@ -6,8 +6,6 @@
 # edit variables here as needed
 export AWS_EC2="wrf-LargeEC2"
 export AWSIP=`docker-machine ip $AWS_EC2`
-# API version shift likely not needed in future non-beta releases
-export DOCKER_API_VERSION=1.23
 #
 # select virtual machine are we running
 eval $(docker-machine env $AWS_EC2)

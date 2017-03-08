@@ -287,8 +287,8 @@ for key in "${!ary[@]}"; do echo "${ary[$key]} slots=${process_per_host}" >> /wr
 
 # Command for openmpi wrf in Docker world
 cp namelist.nocolons namelist.input
-mpirun --allow-run-as-root -np $num_procs ./wrf.exe
-time mpirun --allow-run-as-root -hostfile /wrf/hosts -np $num_procs --mca btl self,tcp --mca btl_tcp_if_include $iface ./wrf.exe
+# mpirun --allow-run-as-root -np $num_procs ./wrf.exe
+time mpirun --allow-run-as-root -hostfile /wrf/hosts --mca pml ob1 -np $num_procs --mca btl self,tcp --mca btl_tcp_if_include $iface ./wrf.exe
 
 # Check success
   ls -ls /$OUTPUT_DIR/wrfo*
