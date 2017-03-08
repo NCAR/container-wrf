@@ -26,8 +26,7 @@ docker run --rm -it -v /home/ubuntu/wrfoutput:/wrfoutput bigwxwrf/ncar-ncl
 # transfer files from amazon back to this system
 echo
 mkdir ~/data-pulled-aws
-cd ~/data-pulled-aws
-scp -i ~/.docker/machine/machines/$AWS_EC2/id_rsa ubuntu@$AWSIP:/home/ubuntu/wrfoutput/* .
+scp -i ~/.docker/machine/machines/$AWS_EC2/id_rsa ubuntu@$AWSIP:/home/ubuntu/wrfoutput/* ~/data-pulled-aws/
 #
 #  remove WRF container processes that exited
 docker-compose rm -f
@@ -37,6 +36,7 @@ docker-compose rm -f
 #
 #
 # look at output files
+cd ~/data-pulled-aws
 echo
 ls
 #
