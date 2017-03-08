@@ -12,7 +12,7 @@ eval $(docker-machine env $AWS_EC2)
 #
 #
 # Start with clean directories
-rm -rf ./data-pulled-aws
+rm -rf ~/data-pulled-aws
 ssh -i ~/.docker/machine/machines/$AWS_EC2/id_rsa ubuntu@$AWSIP "sudo rm -rf /home/ubuntu/wrfoutput"
 #
 # instantiate data sets and run WRF.  see corresponding docker-compose.yml file
@@ -25,8 +25,9 @@ docker run --rm -it -v /home/ubuntu/wrfoutput:/wrfoutput bigwxwrf/ncar-ncl
 #
 # transfer files from amazon back to this system
 echo
-mkdir data-pulled-aws
-scp -i ~/.docker/machine/machines/$AWS_EC2/id_rsa ubuntu@$AWSIP:/home/ubuntu/wrfoutput/* data-pulled-aws/
+mkdir ~/data-pulled-aws
+cd ~/data-pulled-aws
+scp -i ~/.docker/machine/machines/$AWS_EC2/id_rsa ubuntu@$AWSIP:/home/ubuntu/wrfoutput/* .
 #
 #  remove WRF container processes that exited
 docker-compose rm -f
@@ -36,9 +37,7 @@ docker-compose rm -f
 #
 #
 # look at output files
-#
 echo
-cd ./data-pulled-aws
 ls
 #
 # the following commands only function on MacOS
