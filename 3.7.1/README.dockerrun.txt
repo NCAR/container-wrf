@@ -13,7 +13,7 @@
 #
 #
 # to simply run the demo
-# using pre-built NCAR docker-wrf container images, review the docker-compose.yml file
+# using pre-built NCAR container-wrf container images, review the docker-compose.yml file
 # and
       cd demos/local/
       docker-compose up

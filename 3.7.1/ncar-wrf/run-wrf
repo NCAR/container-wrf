@@ -5,6 +5,8 @@
 # Examples in block below.
 # ./run-wrf -np 2 -slots 2 -face eth0 -skip wps -namelist /path/to/namelist -skip real
 
+export btl_base_warn_component_unused=0
+
 #Initalize options
 num_procs=1
 process_per_host=1
@@ -287,8 +289,11 @@ for key in "${!ary[@]}"; do echo "${ary[$key]} slots=${process_per_host}" >> /wr
 
 # Command for openmpi wrf in Docker world
 cp namelist.nocolons namelist.input
-# mpirun --allow-run-as-root -np $num_procs ./wrf.exe
-time mpirun --allow-run-as-root -hostfile /wrf/hosts --mca pml ob1 -np $num_procs --mca btl self,tcp --mca btl_tcp_if_include $iface ./wrf.exe
+#
+# see /root/.openmpi/default-mca-params.conf
+# time mpirun --allow-run-as-root -hostfile /wrf/hosts --mca pml ob1 -np $num_procs --mca btl self,tcp --mca btl_tcp_if_include $iface ./wrf.exe
+# time mpirun --allow-run-as-root -hostfile /wrf/hosts --mca pml ob1 -np $num_procs --mca btl_tcp_if_include $iface ./wrf.exe
+time mpirun --allow-run-as-root -hostfile /wrf/hosts --mca pml ob1 --mca btl_base_warn_component_unused 0 -np $num_procs --mca btl_tcp_if_include $iface ./wrf.exe
 
 # Check success
   ls -ls /$OUTPUT_DIR/wrfo*

@@ -3,6 +3,7 @@ MAINTAINER John Exby <exby@ucar.edu>
 # 
 # This Dockerfile compiles WRF from source during "docker build" step
 ENV WRF_VERSION 3.7.1
+RUN curl -SL https://ral.ucar.edu/sites/default/files/public/projects/ncar-docker-wrf/ucar-bsd-3-clause-license.pdf > /UCAR-BSD-3-Clause-License.pdf
 #
 RUN yum -y update
 RUN yum -y install file gcc gcc-gfortran gcc-c++ glibc.i686 libgcc.i686 libpng-devel jasper jasper-devel hostname m4 make perl tar tcsh time wget which zlib zlib-devel openssh-clients openssh-server net-tools epel-release
@@ -68,7 +69,8 @@ RUN chmod +x /wrf/run-wrf \
 #
 # set up ssh configuration
 COPY ssh_config /root/.ssh/config
-COPY slave /wrf/slave
+RUN mkdir -p /root/.openmpi
+COPY default-mca-params.conf /root/.openmpi
 RUN yum clean all \
     && /wrf/docker-clean \
     && mkdir -p /var/run/sshd \
@@ -79,7 +81,7 @@ RUN yum clean all \
     && ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' \
     && chmod 600 /root/.ssh/config \
     && chmod 700 /root/.ssh \
-    && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
-    && chmod +x /wrf/slave
+    && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
 #
+VOLUME /wrf
 CMD ["/wrf/run-wrf"]

@@ -6,14 +6,14 @@
 # These are manual steps to build your personal docker wrf container images.
 #
 # to simply run the demo:
-# using pre-built NCAR docker-wrf container images, see the docker-compose.yml file
+# using pre-built NCAR container-wrf container images, see the docker-compose.yml file
 # and the file README.dockerrun.txt
 #
 # The steps below are NOT necessary to run the docker demo, but instead for learning how to build docker images.
 #  using "Dockerfile" and commands such as "docker build -t <>"
 #
-git clone  https://github.com/NCAR/docker-wrf
-cd ./docker-wrf/3.7.1/datasets
+git clone  https://github.com/NCAR/container-wrf
+cd ./container-wrf/3.7.1/datasets
 cd wpsgeog ; docker build -t my-wpsgeog .
 cd ../wrfinputsandy ; docker build -t my-wrfinputsandy .
 cd ../wrfinputkatrina ; docker build -t my-wrfinputkatrina .
@@ -44,7 +44,7 @@ docker run -it --rm=true -v ~/wrfoutput:/wrfoutput --name postproc my-ncl
 # Windows:
 # docker run -it --rm=true -v c:/Users/myid/wrfoutput:/wrfoutput --name postproc my-ncl
 #
-# A more automated method using pre-built NCAR docker-wrf container images,
+# A more automated method using pre-built NCAR container-wrf container images,
 # edit the docker-compose.yml file to reflect wrfoutput directory, number of cores, etc
 # again, see the file README.dockerrun.txt
 #
