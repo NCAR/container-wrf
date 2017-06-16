@@ -70,7 +70,7 @@ RUN chmod +x /wrf/run-wrf \
 # set up ssh configuration
 COPY ssh_config /root/.ssh/config
 RUN mkdir -p /root/.openmpi
-COPY default-mca-params.conf /root/.openmpi
+COPY default-mca-params.conf /root/.openmpi/mca-params.conf
 RUN yum clean all \
     && /wrf/docker-clean \
     && mkdir -p /var/run/sshd \
